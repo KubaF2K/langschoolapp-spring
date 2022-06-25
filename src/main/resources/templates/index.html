@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: head">
+    <title id="pageTitle">Langschool</title>
+</head>
+<body class="pb-4">
+<nav th:insert="fragments/layout :: nav"></nav>
+<div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+        <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+        <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
+        <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
+    </div>
+    <div class="carousel-inner">
+        <div class="carousel-item active">
+            <img src="" th:src="@{/img/carousel1.webp}" class="d-block w-100" alt="Półka z książkami">
+        </div>
+        <div class="carousel-item">
+            <img src="" th:src="@{/img/carousel2.webp}" class="d-block w-100" alt="Osoba czytająca słownik">
+        </div>
+        <div class="carousel-item">
+            <img src="" th:src="@{/img/carousel3.webp}" class="d-block w-100" alt="Osoby uczące się w klasie">
+        </div>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Poprzedni</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Następny</span>
+    </button>
+</div>
+<div class="container pt-2">
+    <div class="row">
+        <h2>O naszej szkole</h2>
+        <p>
+            Nasza szkoła pozwala nauczyć się języków obcych szybko i skutecznie. Potrzebujesz znać jakiś język do pracy?
+            Może potrzebujesz certyfikatu? U nas możesz brać udział w różnych kursach które pomogą ci poznać dowolny
+            język jaki mamy w ofercie. Mamy kadrę pomocnych i pracowitych prowadzących którzy nauczą cię wszystkiego w
+            miłej i przyjemnej atmosferze. Nie zwlekaj, zapisz się na kurs już dziś!
+        </p>
+    </div>
+    <div class="row">
+<!--        @if(count($newest_courses) > 0)-->
+<!--            <h2>Najnowsze kursy</h2>-->
+<!--        @endif-->
+<!--        @foreach($newest_courses as $course)-->
+<!--            <div class="col-12 col-sm-6 col-lg-3">-->
+<!--                <div class="card">-->
+<!--                    <img src="{{asset('storage/'.$course->language->code.'.svg')}}" class="card-img-top" style="width: 100%; height: 20vh; object-fit: cover;" alt="{{$course->name}}">-->
+<!--                    <div class="card-body">-->
+<!--                        <h5 class="card-title">{{$course->name}}</h5>-->
+<!--                        <p class="card-text">{{$course->price.' zł'}}<br>{{$course->hours}} godzin</p>-->
+<!--                        <a href="{{route('courses.view', ['id' => $course->id])}}" class="btn btn-primary">Więcej szczegółów...</a>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        @endforeach-->
+<!--        @if(count($top_courses) > 0)-->
+<!--            <h2>Najpopularniejsze kursy</h2>-->
+<!--        @endif-->
+<!--        @foreach($top_courses as $course)-->
+<!--            <div class="col-12 col-sm-6 col-lg-3">-->
+<!--                <div class="card">-->
+<!--                    <img src="{{asset('storage/'.$course->language->code.'.svg')}}" class="card-img-top" style="width: 100%; height: 20vh; object-fit: cover;" alt="{{$course->name}}">-->
+<!--                    <div class="card-body">-->
+<!--                        <h5 class="card-title">{{$course->name}}</h5>-->
+<!--                        <p class="card-text">{{$course->price.' zł'}}<br>{{$course->hours}} godzin</p>-->
+<!--                        <a href="{{route('courses.view', ['id' => $course->id])}}" class="btn btn-primary">Więcej szczegółów...</a>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        @endforeach-->
+    </div>
+    <div class="border rounded p-2 mt-2 mx-auto mb-2 text-center" style="width: max-content;">
+        <h2>Kontakt</h2>
+        <p>
+            Adres:<br>
+            Jana Pawła II 12<br>
+            12-345 Miejscowice
+        </p>
+        <p>
+            Telefon: +48 987 654 321
+        </p>
+        <p>
+            Email: langschoolapp@gmail.com
+        </p>
+    </div>
+</div>
+<footer th:insert="fragments/layout :: foot"></footer>
+</body>
+</html>
