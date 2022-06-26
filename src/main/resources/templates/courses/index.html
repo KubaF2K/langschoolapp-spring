@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:include="fragments/layout :: head">
+    <title id="pageTitle">Kursy</title>
+</head>
+<body class="pb-4">
+<nav th:insert="fragments/layout :: nav"></nav>
+<div class="container pt-4">
+    <div th:if="${msg != null}" th:text="${msg}" class="alert alert-success"></div>
+<!--    TODO errors-->
+    <a sec:authorize="hasAuthority('ROLE_ADMIN')" th:href="@{/courses/add}" class="btn-outline-primary btn">Dodaj kurs</a>
+    <h3>Każdy kolejny kurs 10% taniej! (Do -30%)</h3>
+    <div class="row">
+        <h1>Nasze kursy:</h1>
+        <div th:each="language : ${languages}" class="container border rounded p-4 m-3">
+            <div th:if="${!language.getCourses().isEmpty()}">
+                <a sec:authorize="hasAuthority('ROLE_TEACHER')" th:if="${#authentication.getPrincipal().getUser().getLanguage().getId() == language.getId()}" th:href="@{/courses/add}" class="btn-outline-primary btn float-end">Dodaj kurs</a>
+                <h2 class="border-bottom p-3 w-auto"><img src="" alt="" class="img-thumbnail" style="height: 5rem" th:src="@{'/img/'+${language.getCode()}+'.svg'}" th:alt="${language.getName()}" th:text="${'Język '+language.getName()}"></h2>
+                <div th:each="course, iStat : ${language.getCourses()}" class="row p-2" th:classappend="${!iStat.last}? 'pb-3 border-bottom'">
+                    <h3 th:text="${course.getName()}"></h3>
+                    <h4 th:text="'Cena: '+${course.getPrice()}"></h4>
+                    <h5 th:text="'Prowadzący: '+${course.getTeacher().getFirstName()}+' '+${course.getTeacher().getLastName()}"></h5>
+                    <div class="mt-2"><a th:href="@{'/courses/'+${course.getId()}}" class="btn-primary btn">Wyświetl</a></div>
+                    <form sec:authorize="hasAuthority('ROLE_ADMIN')" method="post" th:action="@{/courses/delete}">
+                        <input type="hidden" name="id" th:value="${course.getId()}"/>
+                        <input class="btn btn-outline-danger float-end" type="submit" value="Usuń" onclick="return confirm('Czy na pewno chcesz usunąć ten kurs?')"/>
+                    </form>
+                    <form sec:authorize="hasAuthority('ROLE_TEACHER')" th:if="${course.getTeacher().getId() == #authentication.getPrincipal().getUser().getId()}" method="post" th:action="@{/courses/delete}">
+                        <input type="hidden" name="id" th:value="${course.getId()}"/>
+                        <input class="btn btn-outline-danger float-end" type="submit" value="Usuń" onclick="return confirm('Czy na pewno chcesz usunąć ten kurs?')"/>
+                    </form>
+                    <a sec:authorize="hasAuthority('ROLE_ADMIN')" class="btn-outline-success btn float-end me-2" th:href="@{'/courses/'+${course.getId()}+'/edit'}">Edytuj</a>
+                    <a sec:authorize="hasAuthority('ROLE_TEACHER')" th:if="${course.getTeacher().getId() == #authentication.getPrincipal().getUser().getId()}" class="btn-outline-success btn float-end me-2" th:href="@{'/courses/'+${course.getId()}+'/edit'}">Edytuj</a>
+                </div>
+            </div>
+            <h3 th:if="${language.getCourses().isEmpty()}">Brak kursów!</h3>
+        </div>
+    </div>
+</div>
+<footer th:insert="fragments/layout :: foot"></footer>
+</body>
+</html>
