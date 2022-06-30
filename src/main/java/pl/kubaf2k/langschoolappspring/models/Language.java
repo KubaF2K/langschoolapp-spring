@@ -4,6 +4,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -13,11 +15,22 @@ public class Language {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
+    //TODO check authorization (admin)
+
+    //TODO unique check in custom validator
     @Column(length = 3, unique = true, nullable = false)
+    @NotNull
+    @Size(min = 2, max = 3)
     private String code;
+
+    @Column(nullable = false)
+    @NotNull
+    @Size(max = 255)
     private String name;
 
-    @Column(columnDefinition = "text")
+    @Column(columnDefinition = "text", nullable = false)
+    @NotNull
+    @Size(max = 32767)
     private String description;
 
     @CreationTimestamp

@@ -4,6 +4,10 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,21 +18,36 @@ public class Course {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
+    //TODO check authorization (admin or teacher with matching language)
+
+    //TODO unique check in custom validator
     @Column(unique = true, nullable = false)
+    @NotNull
+    @Size(max = 255)
     private String name;
 
+    @NotNull
+    @Min(0)
+    @Max(Integer.MAX_VALUE)
     private int hours;
 
-    @Column(columnDefinition = "text")
+    @Column(columnDefinition = "text", nullable = false)
+    @NotNull
+    @Size(max = 32767)
     private String description;
 
     @Column(precision = 8, scale = 2)
+    @Min(0)
+    @Max(99999999)
     private BigDecimal price;
 
     @ManyToOne(optional = false)
+    @NotNull
     private Language language;
 
+    //TODO check if teaches the language in custom validator
     @ManyToOne(optional = false)
+    @NotNull
     private User teacher;
 
     @ManyToMany(mappedBy = "attendedCourses")

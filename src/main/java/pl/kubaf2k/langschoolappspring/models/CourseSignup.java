@@ -4,6 +4,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -13,12 +16,18 @@ public class CourseSignup {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
-    @ManyToOne
+    //TODO check if not already signed up or enrolled in custom validator
+    @ManyToOne(optional = false)
+    @NotNull
     private User user;
-    @ManyToOne
+    @ManyToOne(optional = false)
+    @NotNull
     private Course course;
 
     @Column(precision = 8, scale = 2)
+    @NotNull
+    @Min(0)
+    @Max(99999999)
     private BigDecimal cost;
 
     @CreationTimestamp

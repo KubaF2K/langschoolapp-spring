@@ -4,6 +4,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -14,12 +17,28 @@ public class User {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
+    @Column(nullable = false)
+    @NotNull
+    @Size(max = 255)
     private String firstName;
     private String lastName;
 
+    //TODO unique check in custom validator
     @Column(nullable = false, unique = true)
+    @NotNull
+    @Size(max = 255)
     private String name;
+
+    //TODO unique check in custom validator
+    @Column(nullable = false, unique = true)
+    @NotNull
+    @Email
+    @Size(max = 255)
     private String email;
+
+    @Column(nullable = false)
+    @NotNull
+    @Size(max = 255)
     private String password;
 
     @ManyToOne
