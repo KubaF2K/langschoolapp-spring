@@ -1,9 +1,12 @@
 package pl.kubaf2k.langschoolappspring.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pl.kubaf2k.langschoolappspring.models.Course;
@@ -14,10 +17,10 @@ import pl.kubaf2k.langschoolappspring.repositories.CourseRepository;
 import pl.kubaf2k.langschoolappspring.repositories.LanguageRepository;
 import pl.kubaf2k.langschoolappspring.repositories.RoleRepository;
 import pl.kubaf2k.langschoolappspring.repositories.UserRepository;
+import pl.kubaf2k.langschoolappspring.services.LangschoolUserDetails;
+import pl.kubaf2k.langschoolappspring.validators.BasicInfo;
+import pl.kubaf2k.langschoolappspring.validators.CourseValidator;
 
-import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -28,6 +31,9 @@ public class CourseController {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
 
+    private final Role adminRole;
+    private final Role teacherRole;
+
     @Autowired
     public CourseController(CourseRepository courseRepository,
                             LanguageRepository languageRepository,
@@ -37,6 +43,8 @@ public class CourseController {
         this.languageRepository = languageRepository;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        adminRole = roleRepository.findByName("ROLE_ADMIN");
+        teacherRole = roleRepository.findByName("ROLE_TEACHER");
     }
 
     @GetMapping("/courses")
@@ -50,23 +58,39 @@ public class CourseController {
     @GetMapping("/courses/add")
     public String add(Model model) {
         Iterable<Language> languages = languageRepository.findAll();
-        Role teacher = roleRepository.findByName("ROLE_TEACHER");
-        Iterable<User> teachers = userRepository.findAllByRolesContaining(teacher);
+        Iterable<User> teachers = userRepository.findAllByRolesContaining(teacherRole);
 
         model.addAttribute("languages", languages);
         model.addAttribute("teachers", teachers);
-        model.addAttribute("course", new Course());
+        if (!model.containsAttribute("course"))
+            model.addAttribute("course", new Course());
         return "courses/add";
     }
 
 //    TODO validation
     @PostMapping("/courses/add")
-    public String create(@ModelAttribute @Valid Course course,
+    public String create(@ModelAttribute @Validated(BasicInfo.class) Course course,
                          @RequestParam(name = "language_id") int languageId,
                          @RequestParam(name = "teacher_id") int teacherId,
                          Model model,
                          RedirectAttributes redirectAttributes,
-                         BindingResult result) {
+                         BindingResult result,
+                         @AuthenticationPrincipal LangschoolUserDetails userDetails) {
+        Optional<Language> language = languageRepository.findById(languageId);
+        Optional<User> teacher = userRepository.findById(teacherId);
+
+        if (language.isPresent())
+            course.setLanguage(language.get());
+        else
+            result.rejectValue("language", "Podany język nie istnieje!");
+        if (teacher.isPresent())
+            course.setTeacher(teacher.get());
+        else
+            result.rejectValue("teacher", "Podany prowadzący nie istnieje!");
+
+        CourseValidator validator = new CourseValidator(userDetails.getUser(), teacherRole, adminRole);
+        validator.validate(course, result);
+
         //TODO returns 400 bad request instead of redirect
         if (result.hasErrors()) {
             redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.course", result);
@@ -74,18 +98,18 @@ public class CourseController {
             return "redirect:/courses/add";
         }
 
-        course.setLanguage(languageRepository.findById(languageId).orElseThrow());
-        course.setTeacher(userRepository.findById(teacherId).orElseThrow());
-
         courseRepository.save(course);
         redirectAttributes.addFlashAttribute("msg", "Utworzono kurs!");
         return "redirect:/courses";
     }
 
     @GetMapping("/courses/{id}/edit")
-    public String edit(@PathVariable int id, Model model) {
+    public String edit(@PathVariable int id, Model model, LangschoolUserDetails userDetails) {
         Course course = courseRepository.findById(id).orElseThrow();
-        Role teacherRole = roleRepository.findByName("ROLE_TEACHER");
+
+        if(!userDetails.getUser().getRoles().contains(adminRole) && course.getTeacher() != userDetails.getUser())
+            throw new AccessDeniedException("Brak uprawnień na edycję cudzych kursów");
+
         Iterable<User> teachers = userRepository.findAllByLanguageAndRolesContaining(course.getLanguage(), teacherRole);
 
         model.addAttribute("teachers", teachers);
@@ -98,7 +122,14 @@ public class CourseController {
     public String update(@ModelAttribute Course course,
                          @RequestParam(name = "teacher_id") int teacherId,
                          Model model,
-                         RedirectAttributes redirectAttributes) {
+                         RedirectAttributes redirectAttributes,
+                         BindingResult result,
+                         LangschoolUserDetails userDetails) {
+        if (!userDetails.getUser().getRoles().contains(adminRole) &&
+                userDetails.getUser().getRoles().contains(teacherRole) &&
+                teacherId != userDetails.getUser().getId())
+                result.rejectValue("teacher_id", "Brak uprawnień na edycję kursu innego prowadzącego!");
+
         course.setTeacher(userRepository.findById(teacherId).orElseThrow());
         course.setLanguage(courseRepository.findById(course.getId()).orElseThrow().getLanguage());
 
@@ -111,6 +142,7 @@ public class CourseController {
     public String delete(@RequestParam(name = "id") int id,
                          Model model,
                          RedirectAttributes redirectAttributes) {
+
         courseRepository.deleteById(id);
         redirectAttributes.addFlashAttribute("msg", "Usunięto kurs!");
         return "redirect:/courses";

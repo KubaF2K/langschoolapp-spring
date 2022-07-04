@@ -29,7 +29,7 @@ public class SecurityConfig {
                 .antMatchers("/teacher").hasAuthority("ROLE_TEACHER")
                 .antMatchers("/user/**").authenticated()
                 .antMatchers("/language").hasAuthority("ROLE_ADMIN")
-                .antMatchers("/courses/add", "/courses/edit").hasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN")
+                .antMatchers("/courses/add", "/courses/edit", "/courses/**/edit").hasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN")
                 .anyRequest().permitAll()
                 .and().formLogin()
                 .permitAll()

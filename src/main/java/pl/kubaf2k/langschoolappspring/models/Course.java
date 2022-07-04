@@ -2,12 +2,10 @@ package pl.kubaf2k.langschoolappspring.models;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import pl.kubaf2k.langschoolappspring.validators.BasicInfo;
 
 import javax.persistence.*;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,23 +20,23 @@ public class Course {
 
     //TODO unique check in custom validator
     @Column(unique = true, nullable = false)
-    @NotNull
-    @Size(max = 255)
+    @NotEmpty(groups = BasicInfo.class)
+    @Size(min = 1, max = 255, groups = BasicInfo.class)
     private String name;
 
-    @NotNull
-    @Min(0)
-    @Max(Integer.MAX_VALUE)
+    @NotNull(groups = BasicInfo.class)
+    @Min(value = 0, groups = BasicInfo.class)
+    @Max(value = Integer.MAX_VALUE, groups = BasicInfo.class)
     private int hours;
 
     @Column(columnDefinition = "text", nullable = false)
-    @NotNull
-    @Size(max = 32767)
+    @NotEmpty(groups = BasicInfo.class)
+    @Size(min = 1, max = 32767, groups = BasicInfo.class)
     private String description;
 
     @Column(precision = 8, scale = 2)
-    @Min(0)
-    @Max(99999999)
+    @Min(value = 0, groups = BasicInfo.class)
+    @Max(value = 99999999, groups = BasicInfo.class)
     private BigDecimal price;
 
     @ManyToOne(optional = false)

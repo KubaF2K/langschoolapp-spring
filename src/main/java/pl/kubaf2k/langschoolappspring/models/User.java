@@ -10,6 +10,7 @@ import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 public class User {
@@ -60,6 +61,13 @@ public class User {
 
     @OneToMany(mappedBy = "teacher")
     private List<Course> taughtCourses;
+
+    public boolean hasRole(Role role) {
+        for (Role iRole : roles)
+            if (Objects.equals(role.getName(), iRole.getName()))
+                return true;
+        return false;
+    }
 
     public int getId() {
         return id;
