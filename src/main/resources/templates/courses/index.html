@@ -17,7 +17,7 @@
             <h2 class="border-bottom p-3 w-auto"><img src="" alt="" class="img-thumbnail" style="height: 5rem" th:src="@{'/img/'+${language.getCode()}+'.svg'}" th:alt="${language.getName()}" th:text="${'Język '+language.getName()}"></h2>
             <div th:each="course, iStat : ${language.getCourses()}" class="row p-2" th:classappend="${!iStat.last}? 'pb-3 border-bottom'">
                 <h3 th:text="${course.getName()}"></h3>
-                <h4 th:text="'Cena: '+${course.getPrice()}"></h4>
+                <h4 th:text="'Cena: '+${course.getPrice()}+' zł'"></h4>
                 <h5 th:text="'Prowadzący: '+${course.getTeacher().getFirstName()}+' '+${course.getTeacher().getLastName()}"></h5>
                 <div class="mt-2"><a th:href="@{'/courses/'+${course.getId()}}" class="btn-primary btn">Wyświetl</a></div>
                 <form sec:authorize="hasAuthority('ROLE_ADMIN')" method="post" th:action="@{/courses/delete}">

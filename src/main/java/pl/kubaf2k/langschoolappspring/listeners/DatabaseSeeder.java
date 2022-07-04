@@ -14,7 +14,6 @@ import pl.kubaf2k.langschoolappspring.repositories.LanguageRepository;
 import pl.kubaf2k.langschoolappspring.repositories.RoleRepository;
 import pl.kubaf2k.langschoolappspring.repositories.UserRepository;
 
-import javax.persistence.EntityManagerFactory;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
@@ -49,7 +48,7 @@ public class DatabaseSeeder {
 
     public void seedRoles() {
 
-        if (roleRepository.findByName("ROLE_USER") != null)
+        if (roleRepository.findByName("ROLE_USER").isPresent())
             return;
         roleRepository.deleteAll();
         List<Role> roles = Arrays.asList(
@@ -61,7 +60,7 @@ public class DatabaseSeeder {
     }
 
     public void seedLanguages() {
-        if (languageRepository.findByCode("EN") != null)
+        if (languageRepository.findByCode("EN").isPresent())
             return;
         languageRepository.deleteAll();
         List<Language> languages = Arrays.asList(
@@ -75,12 +74,12 @@ public class DatabaseSeeder {
     }
 
     public void seedUsers() {
-        if (userRepository.findByName("admin") != null)
+        if (userRepository.findByName("admin").isPresent())
             return;
         userRepository.deleteAll();
-        Role admin = roleRepository.findByName("ROLE_ADMIN");
-        Role teacher = roleRepository.findByName("ROLE_TEACHER");
-        Role user = roleRepository.findByName("ROLE_USER");
+        Role admin = roleRepository.findByName("ROLE_ADMIN").orElseThrow();
+        Role teacher = roleRepository.findByName("ROLE_TEACHER").orElseThrow();
+        Role user = roleRepository.findByName("ROLE_USER").orElseThrow();
         List<User> users = Arrays.asList(
                 new User(
                         "Administrator",
@@ -96,7 +95,7 @@ public class DatabaseSeeder {
                         "bob",
                         "bob@email.com",
                         passwordEncoder.encode("1234"),
-                        languageRepository.findByCode("EN"),
+                        languageRepository.findByCode("EN").orElseThrow(),
                         teacher
                 ),
                 new User(
@@ -105,7 +104,7 @@ public class DatabaseSeeder {
                         "ewa",
                         "ewa@email.com",
                         passwordEncoder.encode("1234"),
-                        languageRepository.findByCode("PL"),
+                        languageRepository.findByCode("PL").orElseThrow(),
                         teacher
                 ),
                 new User(
@@ -114,7 +113,7 @@ public class DatabaseSeeder {
                         "hans",
                         "hans@email.com",
                         passwordEncoder.encode("1234"),
-                        languageRepository.findByCode("DE"),
+                        languageRepository.findByCode("DE").orElseThrow(),
                         teacher
                 ),
                 new User(
@@ -123,7 +122,7 @@ public class DatabaseSeeder {
                         "roberto",
                         "roberto@email.com",
                         passwordEncoder.encode("1234"),
-                        languageRepository.findByCode("ES"),
+                        languageRepository.findByCode("ES").orElseThrow(),
                         teacher
                 ),
                 new User(
@@ -132,7 +131,7 @@ public class DatabaseSeeder {
                         "jean",
                         "jean@email.com",
                         passwordEncoder.encode("1234"),
-                        languageRepository.findByCode("FR"),
+                        languageRepository.findByCode("FR").orElseThrow(),
                         teacher
                 ),
                 new User(
@@ -159,8 +158,8 @@ public class DatabaseSeeder {
                                 "uczy angielskiego od podstaw, w prosty sposób nauczysz się słów i zwrotów " +
                                 "przydatnych na co dzień.",
                         new BigDecimal(550),
-                        languageRepository.findByCode("EN"),
-                        userRepository.findByName("bob")
+                        languageRepository.findByCode("EN").orElseThrow(),
+                        userRepository.findByName("bob").orElseThrow()
                 ),
                 new Course(
                         "Angielski zaawansowany",
@@ -169,8 +168,8 @@ public class DatabaseSeeder {
                                 "języka angielskiego. Celem kursu jest kształtowanie umiejętności komunikacji oraz " +
                                 "poznanie nowych zwrotów i wyrażeń.",
                         new BigDecimal(800),
-                        languageRepository.findByCode("EN"),
-                        userRepository.findByName("bob")
+                        languageRepository.findByCode("EN").orElseThrow(),
+                        userRepository.findByName("bob").orElseThrow()
                 ),
                 new Course(
                         "Polski dla obcokrajowców",
@@ -178,8 +177,8 @@ public class DatabaseSeeder {
                         "Jeśli potrzebujesz poznać polski lepiej, ten kurs jest dla ciebie. Pomoże ci " +
                                 "szybko poznać polski w stopniu komunikatywnym.",
                         new BigDecimal(450),
-                        languageRepository.findByCode("PL"),
-                        userRepository.findByName("ewa")
+                        languageRepository.findByCode("PL").orElseThrow(),
+                        userRepository.findByName("ewa").orElseThrow()
                 ),
                 new Course(
                         "Niemiecki podstawowy",
@@ -187,8 +186,8 @@ public class DatabaseSeeder {
                         "Poznaj podstawy języka sąsiadów z zachodu. Kurs opracowany jest z myślą o " +
                                 "praktycznym zastosowaniu języka.",
                         new BigDecimal(520),
-                        languageRepository.findByCode("DE"),
-                        userRepository.findByName("hans")
+                        languageRepository.findByCode("DE").orElseThrow(),
+                        userRepository.findByName("hans").orElseThrow()
                 ),
                 new Course(
                         "Niemiecki zaawansowany",
@@ -196,8 +195,8 @@ public class DatabaseSeeder {
                         "Kurs niemiecki dla zaawansowanych umożliwia opanowanie prawie 2000 nowych " +
                                 "wyrażeń i poznać bliżej gramatykę.",
                         new BigDecimal(780),
-                        languageRepository.findByCode("DE"),
-                        userRepository.findByName("hans")
+                        languageRepository.findByCode("DE").orElseThrow(),
+                        userRepository.findByName("hans").orElseThrow()
                 ),
                 new Course(
                         "Hiszpański podstawowy",
@@ -205,8 +204,8 @@ public class DatabaseSeeder {
                         "Poznaj podstawy hiszpańskiego dzięki naszemu kursowi. W łatwy sposób możesz " +
                                 "poznać 2500 słów i opanować podstawową komunikację.",
                         new BigDecimal(500),
-                        languageRepository.findByCode("ES"),
-                        userRepository.findByName("roberto")
+                        languageRepository.findByCode("ES").orElseThrow(),
+                        userRepository.findByName("roberto").orElseThrow()
                 ),
                 new Course(
                         "Hiszpański zaawansowany",
@@ -214,8 +213,8 @@ public class DatabaseSeeder {
                         "Nasz kurs zaawansowanego hiszpańskiego rozszerza nasz kurs podstawowy o 4000 słów i " +
                                 "wyrażeń, plus pozwala na naukę słownictwa używanego na co dzień.",
                         new BigDecimal(750),
-                        languageRepository.findByCode("ES"),
-                        userRepository.findByName("roberto")
+                        languageRepository.findByCode("ES").orElseThrow(),
+                        userRepository.findByName("roberto").orElseThrow()
                 ),
                 new Course(
                         "Francuski podstawowy",
@@ -223,8 +222,8 @@ public class DatabaseSeeder {
                         "Kurs francuskiego podstawowego pozwala na przyswojenie wymowy i podstawowego " +
                                 "słownictwa potrzebnego w życiu codziennym.",
                         new BigDecimal(500),
-                        languageRepository.findByCode("FR"),
-                        userRepository.findByName("jean")
+                        languageRepository.findByCode("FR").orElseThrow(),
+                        userRepository.findByName("jean").orElseThrow()
                 ),
                 new Course(
                         "Francuski zaawansowany",
@@ -232,8 +231,8 @@ public class DatabaseSeeder {
                         "Francuski zaawansowany utrwala materiał poznany w kursie podstawowym oraz uczy " +
                                 "3000 nowych wyrażeń, nastawionych na kulturę i obyczaje.",
                         new BigDecimal(750),
-                        languageRepository.findByCode("FR"),
-                        userRepository.findByName("jean")
+                        languageRepository.findByCode("FR").orElseThrow(),
+                        userRepository.findByName("jean").orElseThrow()
                 )
         );
         courseRepository.saveAll(courses);

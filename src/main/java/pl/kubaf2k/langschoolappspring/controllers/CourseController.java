@@ -43,8 +43,8 @@ public class CourseController {
         this.languageRepository = languageRepository;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
-        adminRole = roleRepository.findByName("ROLE_ADMIN");
-        teacherRole = roleRepository.findByName("ROLE_TEACHER");
+        adminRole = roleRepository.findByName("ROLE_ADMIN").orElseThrow();
+        teacherRole = roleRepository.findByName("ROLE_TEACHER").orElseThrow();
     }
 
     @GetMapping("/courses")
@@ -57,8 +57,8 @@ public class CourseController {
 
     @GetMapping("/courses/add")
     public String add(Model model) {
-        Iterable<Language> languages = languageRepository.findAll();
-        Iterable<User> teachers = userRepository.findAllByRolesContaining(teacherRole);
+        var languages = languageRepository.findAll();
+        var teachers = userRepository.findAllByRolesContaining(teacherRole);
 
         model.addAttribute("languages", languages);
         model.addAttribute("teachers", teachers);
@@ -70,28 +70,27 @@ public class CourseController {
 //    TODO validation
     @PostMapping("/courses/add")
     public String create(@ModelAttribute @Validated(BasicInfo.class) Course course,
+                         BindingResult result,
                          @RequestParam(name = "language_id") int languageId,
                          @RequestParam(name = "teacher_id") int teacherId,
                          Model model,
                          RedirectAttributes redirectAttributes,
-                         BindingResult result,
                          @AuthenticationPrincipal LangschoolUserDetails userDetails) {
-        Optional<Language> language = languageRepository.findById(languageId);
-        Optional<User> teacher = userRepository.findById(teacherId);
+        var language = languageRepository.findById(languageId);
+        var teacher = userRepository.findById(teacherId);
 
         if (language.isPresent())
             course.setLanguage(language.get());
         else
-            result.rejectValue("language", "Podany język nie istnieje!");
+            result.rejectValue("language", "error.language.not_exists", "podany język nie istnieje");
         if (teacher.isPresent())
             course.setTeacher(teacher.get());
         else
-            result.rejectValue("teacher", "Podany prowadzący nie istnieje!");
+            result.rejectValue("teacher", "error.teacher.not_exists", "podany prowadzący nie istnieje");
 
-        CourseValidator validator = new CourseValidator(userDetails.getUser(), teacherRole, adminRole);
+        var validator = new CourseValidator(userDetails.getUser(), teacherRole, adminRole, courseRepository);
         validator.validate(course, result);
 
-        //TODO returns 400 bad request instead of redirect
         if (result.hasErrors()) {
             redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.course", result);
             redirectAttributes.addFlashAttribute("course", course);
@@ -104,34 +103,44 @@ public class CourseController {
     }
 
     @GetMapping("/courses/{id}/edit")
-    public String edit(@PathVariable int id, Model model, LangschoolUserDetails userDetails) {
-        Course course = courseRepository.findById(id).orElseThrow();
+    public String edit(@PathVariable int id, Model model, @AuthenticationPrincipal LangschoolUserDetails userDetails) {
+        var course = courseRepository.findById(id).orElseThrow();
 
-        if(!userDetails.getUser().getRoles().contains(adminRole) && course.getTeacher() != userDetails.getUser())
+        if(!userDetails.getUser().hasRole(adminRole) && course.getTeacher().getId() != userDetails.getUser().getId())
             throw new AccessDeniedException("Brak uprawnień na edycję cudzych kursów");
 
-        Iterable<User> teachers = userRepository.findAllByLanguageAndRolesContaining(course.getLanguage(), teacherRole);
+        var teachers = userRepository.findAllByLanguageAndRolesContaining(course.getLanguage(), teacherRole);
 
         model.addAttribute("teachers", teachers);
-        model.addAttribute("course", course);
+        if (!model.containsAttribute("course"))
+            model.addAttribute("course", course);
+
         return "courses/edit";
     }
 
     //TODO Validation
     @PostMapping("/courses/edit")
-    public String update(@ModelAttribute Course course,
+    public String update(@ModelAttribute @Validated(BasicInfo.class) Course course,
+                         BindingResult result,
                          @RequestParam(name = "teacher_id") int teacherId,
                          Model model,
                          RedirectAttributes redirectAttributes,
-                         BindingResult result,
-                         LangschoolUserDetails userDetails) {
-        if (!userDetails.getUser().getRoles().contains(adminRole) &&
-                userDetails.getUser().getRoles().contains(teacherRole) &&
-                teacherId != userDetails.getUser().getId())
-                result.rejectValue("teacher_id", "Brak uprawnień na edycję kursu innego prowadzącego!");
+                         @AuthenticationPrincipal LangschoolUserDetails userDetails) {
+        Optional<User> teacher = userRepository.findById(teacherId);
 
-        course.setTeacher(userRepository.findById(teacherId).orElseThrow());
-        course.setLanguage(courseRepository.findById(course.getId()).orElseThrow().getLanguage());
+        if (teacher.isPresent())
+            course.setTeacher(teacher.get());
+        else
+            result.rejectValue("teacher", "error.teacher.not_exists", "podany prowadzący nie istnieje");
+
+        var validator = new CourseValidator(userDetails.getUser(), teacherRole, adminRole, courseRepository);
+        validator.validate(course, result);
+
+        if (result.hasErrors()) {
+            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.course", result);
+            redirectAttributes.addFlashAttribute("course", course);
+            return "redirect:/courses/"+course.getId()+"/edit";
+        }
 
         courseRepository.save(course);
         redirectAttributes.addFlashAttribute("msg", "Zedytowano kurs!");

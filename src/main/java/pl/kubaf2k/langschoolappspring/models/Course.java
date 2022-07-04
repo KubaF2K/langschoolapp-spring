@@ -16,8 +16,6 @@ public class Course {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
-    //TODO check authorization (admin or teacher with matching language)
-
     //TODO unique check in custom validator
     @Column(unique = true, nullable = false)
     @NotEmpty(groups = BasicInfo.class)
@@ -34,7 +32,8 @@ public class Course {
     @Size(min = 1, max = 32767, groups = BasicInfo.class)
     private String description;
 
-    @Column(precision = 8, scale = 2)
+    @Column(precision = 8, scale = 2, nullable = false)
+    @NotNull(groups = BasicInfo.class)
     @Min(value = 0, groups = BasicInfo.class)
     @Max(value = 99999999, groups = BasicInfo.class)
     private BigDecimal price;

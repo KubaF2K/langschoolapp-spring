@@ -5,7 +5,6 @@
 </head>
 <body class="pb-4">
 <nav th:insert="fragments/layout :: nav"></nav>
-<!--TODO errors-->
 <div class="container pt-4">
     <h2>Nowy kurs</h2>
     <form method="post" th:action="@{/courses/add}" th:object="${course}">
@@ -16,23 +15,18 @@
         </div>
         <div class="mb-3" sec:authorize="hasAuthority('ROLE_ADMIN')">
             <label class="form-label" for="language_id">Język</label>
-<!--            TODO error-->
             <select class="form-control" id="language_id" name="language_id" th:classappend="${#fields.hasErrors('language')} ? 'is-invalid'">
-<!--                TODO old form data-->
                 <option th:each="language : ${languages}" th:value="${language.id}" th:text="${language.name}"></option>
             </select>
         </div>
         <div class="mb-3" sec:authorize="hasAuthority('ROLE_ADMIN')">
             <label class="form-label" for="teacher_id">Prowadzący</label>
-<!--            TODO error-->
             <select class="form-control" id="teacher_id" name="teacher_id" th:classappend="${#fields.hasErrors('teacher')} ? 'is-invalid'">
-<!--                TODO old form data-->
                 <option th:each="teacher : ${teachers}" th:value="${teacher.id}" th:text="${teacher.firstName+' '+teacher.lastName}"></option>
             </select>
         </div>
         <input sec:authorize="!hasAuthority('ROLE_ADMIN')" type="hidden" name="language_id" th:value="${#authentication.principal.user.language.id}">
         <input sec:authorize="!hasAuthority('ROLE_ADMIN')" type="hidden" name="teacher_id" th:value="${#authentication.principal.user.id}">
-<!--            TODO errors and old values-->
         <div class="mb-3">
             <label class="form-label" th:field="*{name}">Nazwa</label>
             <input class="form-control" th:field="*{name}" th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'">
@@ -47,7 +41,7 @@
         </div>
         <div class="mb-3">
             <label class="form-label" th:field="*{price}">Cena</label>
-            <input class="form-control" th:field="*{price}" type="number" min="0" step="0.01" th:classappend="${#fields.hasErrors('price')}"> zł
+            <input class="form-control" th:field="*{price}" type="number" min="0" step="0.01" th:classappend="${#fields.hasErrors('price')} ? 'is-invalid'"> zł
         </div>
         <input type="submit" class="btn btn-outline-primary" value="Dodaj">
     </form>
