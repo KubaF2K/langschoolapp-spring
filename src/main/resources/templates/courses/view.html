@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:include="fragments/layout :: head">
+    <title id="pageTitle" th:text="${course.name}"></title>
+</head>
+<body>
+<nav th:insert="fragments/layout :: nav"></nav>
+<div class="container col-12 text-center">
+    <img class="img-thumbnail mx-auto col-4" th:src="@{'/img/'+${course.language.code}+'.svg'}" th:alt="${course.language.name}" alt="" src="">
+</div>
+<div class="row">
+    <div class="row p-2">
+        <h3 th:text="${course.name}"></h3>
+        <p th:text="${course.description}"></p>
+        <h4 th:text="${'Liczba godzin: '+course.hours}"></h4>
+        <h4 sec:authorize="isAuthenticated()" th:if="${courseCount > 0}"
+            th:text="${
+            'Cena: ' + calculatedPrice + ' zł (' + percentage + '0%)'}"></h4>
+        <h4 sec:authorize="isAuthenticated()" th:if="${courseCount <= 0}"
+            th:text="${course.price + ' zł'}"></h4>
+        <h5 th:text="${'Prowadzący: ' + course.teacher.firstName + ' ' + course.teacher.lastName}"></h5>
+        <div class="mb-2" sec:authorize="hasAuthority('ROLE_ADMIN')">
+            <form th:action="@{/courses/delete}" method="post">
+                <a th:href="@{'/courses/'+course.id+'/edit'}" class="btn-success btn">Edytuj</a>
+                <input class="btn btn-danger" type="submit" value="Usuń" onclick="return confirm('Czy na pewno chcesz usunąć ten kurs?')"/>
+            </form>
+        </div>
+        <div class="mb-2" sec:authorize="hasAuthority('ROLE_TEACHER')" th:if="${#authentication.getPrincipal().getUser().getId() == course.teacher.id}">
+            <form th:action="@{/courses/delete}" method="post">
+                <a th:href="@{'/courses/'+course.id+'/edit'}" class="btn-success btn">Edytuj</a>
+                <input class="btn btn-danger" type="submit" value="Usuń" onclick="return confirm('Czy na pewno chcesz usunąć ten kurs?')"/>
+            </form>
+        </div>
+        <form th:action="@{/courses/enroll}" method="post" sec:authorize="isAuthenticated()" th:if="${#authentication.getPrincipal().getUser().getId() != course.teacher.id}">
+            <input name="user_id" type="hidden" th:value="${#authentication.getPrincipal().getUser().getId()}"/>
+            <input name="course_id" type="hidden" th:value="${course.id}"/>
+            <input type="submit" value="Zapisz się" class="btn btn-primary"/>
+        </form>
+    </div>
+</div>
+
+//TODO errors
+<footer th:insert="fragments/layout :: foot"></footer>
+</body>
+</html>

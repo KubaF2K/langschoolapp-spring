@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-public class CourseSignup {
+public class CourseStatus {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
@@ -34,6 +34,29 @@ public class CourseSignup {
     private LocalDateTime createdAt;
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    @Column(nullable = false)
+    @NotNull
+    private Status status;
+
+    public CourseStatus(){}
+
+    public CourseStatus(Course course, User user, Status status) {
+        this.course = course;
+        this.user = user;
+        this.status = status;
+    }
+
+    public CourseStatus(Course course, User user, Status status, BigDecimal cost) {
+        this.course = course;
+        this.user = user;
+        this.status = status;
+        this.cost = cost;
+    }
+
+    public enum Status {
+        NOT_ACCEPTED, ATTENDING, HISTORICAL
+    }
 
     public int getId() {
         return id;
@@ -81,5 +104,13 @@ public class CourseSignup {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
     }
 }

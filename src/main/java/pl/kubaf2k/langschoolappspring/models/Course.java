@@ -8,6 +8,7 @@ import javax.persistence.*;
 import javax.validation.constraints.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.LinkedList;
 import java.util.List;
 
 @Entity
@@ -47,11 +48,8 @@ public class Course {
     @NotNull
     private User teacher;
 
-    @ManyToMany(mappedBy = "attendedCourses")
-    private List<User> attendants;
-
     @OneToMany(mappedBy = "course")
-    private List<CourseSignup> courseSignups;
+    private List<CourseStatus> users;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -59,6 +57,24 @@ public class Course {
     private LocalDateTime updatedAt;
 
     public Course() {
+    }
+
+    public List<User> getApplicants() {
+        var list = new LinkedList<User>();
+        for (var status : users)
+            if (status.getStatus() == CourseStatus.Status.NOT_ACCEPTED)
+                list.add(status.getUser());
+
+        return list;
+    }
+
+    public List<User> getAttendants() {
+        var list = new LinkedList<User>();
+        for (var status : users)
+            if (status.getStatus() == CourseStatus.Status.ATTENDING)
+                list.add(status.getUser());
+
+        return list;
     }
 
     public int getId() {
@@ -133,20 +149,12 @@ public class Course {
         this.teacher = teacher;
     }
 
-    public List<User> getAttendants() {
-        return attendants;
+    public List<CourseStatus> getUsers() {
+        return users;
     }
 
-    public void setAttendants(List<User> attendants) {
-        this.attendants = attendants;
-    }
-
-    public List<CourseSignup> getCourseSignups() {
-        return courseSignups;
-    }
-
-    public void setCourseSignups(List<CourseSignup> courseSignups) {
-        this.courseSignups = courseSignups;
+    public void setUsers(List<CourseStatus> courseSignups) {
+        this.users = courseSignups;
     }
 
     public Course(String name, int hours, String description, BigDecimal price, Language language, User teacher) {

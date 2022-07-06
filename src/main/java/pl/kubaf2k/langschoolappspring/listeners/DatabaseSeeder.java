@@ -9,10 +9,7 @@ import pl.kubaf2k.langschoolappspring.models.Course;
 import pl.kubaf2k.langschoolappspring.models.Language;
 import pl.kubaf2k.langschoolappspring.models.Role;
 import pl.kubaf2k.langschoolappspring.models.User;
-import pl.kubaf2k.langschoolappspring.repositories.CourseRepository;
-import pl.kubaf2k.langschoolappspring.repositories.LanguageRepository;
-import pl.kubaf2k.langschoolappspring.repositories.RoleRepository;
-import pl.kubaf2k.langschoolappspring.repositories.UserRepository;
+import pl.kubaf2k.langschoolappspring.repositories.*;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -25,16 +22,23 @@ public class DatabaseSeeder {
     private final LanguageRepository languageRepository;
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
+    private final StatusRepository statusRepository;
     private final PasswordEncoder passwordEncoder;
 
     //TODO constraints
 
     @Autowired
-    public DatabaseSeeder(RoleRepository roleRepository, LanguageRepository languageRepository, UserRepository userRepository, CourseRepository courseRepository, PasswordEncoder passwordEncoder) {
+    public DatabaseSeeder(RoleRepository roleRepository,
+                          LanguageRepository languageRepository,
+                          UserRepository userRepository,
+                          CourseRepository courseRepository,
+                          StatusRepository statusRepository,
+                          PasswordEncoder passwordEncoder) {
         this.roleRepository = roleRepository;
         this.languageRepository = languageRepository;
         this.userRepository = userRepository;
         this.courseRepository = courseRepository;
+        this.statusRepository = statusRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -76,6 +80,7 @@ public class DatabaseSeeder {
     public void seedUsers() {
         if (userRepository.findByName("admin").isPresent())
             return;
+        statusRepository.deleteAll();
         userRepository.deleteAll();
         Role admin = roleRepository.findByName("ROLE_ADMIN").orElseThrow();
         Role teacher = roleRepository.findByName("ROLE_TEACHER").orElseThrow();
@@ -147,7 +152,7 @@ public class DatabaseSeeder {
     }
 
     public void seedCourses() {
-        if (courseRepository.existsById(1))
+        if (courseRepository.existsByName("Angielski podstawowy"))
             return;
         courseRepository.deleteAll();
         List<Course> courses = Arrays.asList(

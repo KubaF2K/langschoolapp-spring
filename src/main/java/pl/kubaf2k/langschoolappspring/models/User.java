@@ -8,9 +8,7 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Entity
 public class User {
@@ -54,10 +52,7 @@ public class User {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "user")
-    private List<CourseSignup> courseSignups;
-
-    @ManyToMany
-    private List<Course> attendedCourses;
+    private List<CourseStatus> courses;
 
     @OneToMany(mappedBy = "teacher")
     private List<Course> taughtCourses;
@@ -67,6 +62,33 @@ public class User {
             if (Objects.equals(role.getName(), iRole.getName()))
                 return true;
         return false;
+    }
+
+    public List<Course> getAttendedCourses() {
+        var list = new LinkedList<Course>();
+        for (var status : courses)
+            if (status.getStatus() == CourseStatus.Status.ATTENDING)
+                list.add(status.getCourse());
+
+        return list;
+    }
+
+    public List<Course> getCourseSignups() {
+        var list = new LinkedList<Course>();
+        for (var status : courses)
+            if (status.getStatus() == CourseStatus.Status.NOT_ACCEPTED)
+                list.add(status.getCourse());
+
+        return list;
+    }
+
+    public List<Course> getHistoricalCourses() {
+        var list = new LinkedList<Course>();
+        for (var status : courses)
+            if (status.getStatus() == CourseStatus.Status.HISTORICAL)
+                list.add(status.getCourse());
+
+        return list;
     }
 
     public int getId() {
@@ -149,20 +171,12 @@ public class User {
         this.updatedAt = updatedAt;
     }
 
-    public List<CourseSignup> getCourseSignups() {
-        return courseSignups;
+    public List<CourseStatus> getCourses() {
+        return courses;
     }
 
-    public void setCourseSignups(List<CourseSignup> courseSignups) {
-        this.courseSignups = courseSignups;
-    }
-
-    public List<Course> getAttendedCourses() {
-        return attendedCourses;
-    }
-
-    public void setAttendedCourses(List<Course> attendedCourses) {
-        this.attendedCourses = attendedCourses;
+    public void setCourses(List<CourseStatus> courseSignups) {
+        this.courses = courseSignups;
     }
 
     public List<Course> getTaughtCourses() {

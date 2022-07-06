@@ -6,21 +6,18 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.Errors;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import pl.kubaf2k.langschoolappspring.models.Course;
-import pl.kubaf2k.langschoolappspring.models.Language;
-import pl.kubaf2k.langschoolappspring.models.Role;
-import pl.kubaf2k.langschoolappspring.models.User;
-import pl.kubaf2k.langschoolappspring.repositories.CourseRepository;
-import pl.kubaf2k.langschoolappspring.repositories.LanguageRepository;
-import pl.kubaf2k.langschoolappspring.repositories.RoleRepository;
-import pl.kubaf2k.langschoolappspring.repositories.UserRepository;
+import pl.kubaf2k.langschoolappspring.models.*;
+import pl.kubaf2k.langschoolappspring.repositories.*;
 import pl.kubaf2k.langschoolappspring.services.LangschoolUserDetails;
 import pl.kubaf2k.langschoolappspring.validators.BasicInfo;
 import pl.kubaf2k.langschoolappspring.validators.CourseValidator;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Optional;
 
 @Controller
@@ -30,21 +27,22 @@ public class CourseController {
     private final LanguageRepository languageRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final StatusRepository statusRepository;
 
-    private final Role adminRole;
-    private final Role teacherRole;
+//    private Role adminRole;
+//    private Role teacherRole;
 
     @Autowired
     public CourseController(CourseRepository courseRepository,
                             LanguageRepository languageRepository,
                             UserRepository userRepository,
-                            RoleRepository roleRepository) {
+                            RoleRepository roleRepository,
+                            StatusRepository statusRepository) {
         this.courseRepository = courseRepository;
         this.languageRepository = languageRepository;
         this.userRepository = userRepository;
+        this.statusRepository = statusRepository;
         this.roleRepository = roleRepository;
-        adminRole = roleRepository.findByName("ROLE_ADMIN").orElseThrow();
-        teacherRole = roleRepository.findByName("ROLE_TEACHER").orElseThrow();
     }
 
     @GetMapping("/courses")
@@ -58,7 +56,7 @@ public class CourseController {
     @GetMapping("/courses/add")
     public String add(Model model) {
         var languages = languageRepository.findAll();
-        var teachers = userRepository.findAllByRolesContaining(teacherRole);
+        var teachers = userRepository.findAllByRolesContaining(roleRepository.findByName("ROLE_TEACHER").orElseThrow());
 
         model.addAttribute("languages", languages);
         model.addAttribute("teachers", teachers);
@@ -88,7 +86,12 @@ public class CourseController {
         else
             result.rejectValue("teacher", "error.teacher.not_exists", "podany prowadzący nie istnieje");
 
-        var validator = new CourseValidator(userDetails.getUser(), teacherRole, adminRole, courseRepository);
+        var validator = new CourseValidator(
+                userDetails.getUser(),
+                roleRepository.findByName("ROLE_TEACHER").orElseThrow(),
+                roleRepository.findByName("ROLE_ADMIN").orElseThrow(),
+                courseRepository
+        );
         validator.validate(course, result);
 
         if (result.hasErrors()) {
@@ -106,10 +109,10 @@ public class CourseController {
     public String edit(@PathVariable int id, Model model, @AuthenticationPrincipal LangschoolUserDetails userDetails) {
         var course = courseRepository.findById(id).orElseThrow();
 
-        if(!userDetails.getUser().hasRole(adminRole) && course.getTeacher().getId() != userDetails.getUser().getId())
+        if(!userDetails.getUser().hasRole(roleRepository.findByName("ROLE_ADMIN").orElseThrow()) && course.getTeacher().getId() != userDetails.getUser().getId())
             throw new AccessDeniedException("Brak uprawnień na edycję cudzych kursów");
 
-        var teachers = userRepository.findAllByLanguageAndRolesContaining(course.getLanguage(), teacherRole);
+        var teachers = userRepository.findAllByLanguageAndRolesContaining(course.getLanguage(), roleRepository.findByName("ROLE_TEACHER").orElseThrow());
 
         model.addAttribute("teachers", teachers);
         if (!model.containsAttribute("course"))
@@ -133,7 +136,12 @@ public class CourseController {
         else
             result.rejectValue("teacher", "error.teacher.not_exists", "podany prowadzący nie istnieje");
 
-        var validator = new CourseValidator(userDetails.getUser(), teacherRole, adminRole, courseRepository);
+        var validator = new CourseValidator(
+                userDetails.getUser(),
+                roleRepository.findByName("ROLE_TEACHER").orElseThrow(),
+                roleRepository.findByName("ROLE_ADMIN").orElseThrow(),
+                courseRepository
+        );
         validator.validate(course, result);
 
         if (result.hasErrors()) {
@@ -154,6 +162,44 @@ public class CourseController {
 
         courseRepository.deleteById(id);
         redirectAttributes.addFlashAttribute("msg", "Usunięto kurs!");
+        return "redirect:/courses";
+    }
+
+    @GetMapping("/courses/{id}")
+    public String view(@PathVariable int id, Model model, @AuthenticationPrincipal LangschoolUserDetails userDetails) {
+        var course = courseRepository.findById(id).orElseThrow();
+        if (userDetails != null) {
+            var user = userRepository.findByName(userDetails.getUsername()).orElseThrow();
+            int attendedCourses = user.getAttendedCourses().size() + user.getHistoricalCourses().size();
+            var calculatedPrice = BigDecimal.valueOf(course.getPrice().doubleValue() - (course.getPrice().doubleValue() / 10 * Math.min(3, attendedCourses)));
+            int percentage = Math.min(3, attendedCourses);
+            model.addAttribute("courseCount", attendedCourses);
+            model.addAttribute("calculatedPrice", calculatedPrice);
+            model.addAttribute("percentage", percentage);
+        }
+        model.addAttribute(course);
+        return "courses/view";
+    }
+
+    @PostMapping("/courses/enroll")
+    public String enroll(@RequestParam(name = "user_id") int userId,
+                         @RequestParam(name = "course_id") int courseId,
+                         Model model,
+                         RedirectAttributes redirectAttributes) {
+        var user = userRepository.findById(userId).orElseThrow();
+        var course = courseRepository.findById(courseId).orElseThrow();
+        var price = course.getPrice().subtract(
+                course.getPrice()
+                        .divide(BigDecimal.valueOf(10), 2, RoundingMode.DOWN)
+                        .multiply(
+                                BigDecimal.valueOf(3)
+                                    .min(BigDecimal.valueOf(user.getAttendedCourses().size()+user.getHistoricalCourses().size()))
+                )
+        ).setScale(2, RoundingMode.DOWN);
+        var application = new CourseStatus(course, user, CourseStatus.Status.NOT_ACCEPTED, price);
+        statusRepository.save(application);
+        redirectAttributes.addFlashAttribute("msg", "Zapisano pomyślnie!");
+        //TODO redirect to user panel
         return "redirect:/courses";
     }
 }
