@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
@@ -16,6 +17,7 @@ import pl.kubaf2k.langschoolappspring.services.LangschoolUserDetails;
 import pl.kubaf2k.langschoolappspring.validators.BasicInfo;
 import pl.kubaf2k.langschoolappspring.validators.CourseValidator;
 
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Optional;
@@ -173,9 +175,11 @@ public class CourseController {
             int attendedCourses = user.getAttendedCourses().size() + user.getHistoricalCourses().size();
             var calculatedPrice = BigDecimal.valueOf(course.getPrice().doubleValue() - (course.getPrice().doubleValue() / 10 * Math.min(3, attendedCourses)));
             int percentage = Math.min(3, attendedCourses);
+            var hasApplied = user.hasApplied(course);
             model.addAttribute("courseCount", attendedCourses);
             model.addAttribute("calculatedPrice", calculatedPrice);
             model.addAttribute("percentage", percentage);
+            model.addAttribute("has_applied", hasApplied);
         }
         model.addAttribute(course);
         return "courses/view";
@@ -188,6 +192,10 @@ public class CourseController {
                          RedirectAttributes redirectAttributes) {
         var user = userRepository.findById(userId).orElseThrow();
         var course = courseRepository.findById(courseId).orElseThrow();
+        if (user.hasApplied(course)) {
+            redirectAttributes.addFlashAttribute("msg", "Jesteś już zapisany na ten kurs!");
+            return "redirect:/courses";
+        }
         var price = course.getPrice().subtract(
                 course.getPrice()
                         .divide(BigDecimal.valueOf(10), 2, RoundingMode.DOWN)
@@ -201,5 +209,25 @@ public class CourseController {
         redirectAttributes.addFlashAttribute("msg", "Zapisano pomyślnie!");
         //TODO redirect to user panel
         return "redirect:/courses";
+    }
+
+    @GetMapping("/courses/user")
+    public String user(Model model, @AuthenticationPrincipal LangschoolUserDetails userDetails) {
+        var user = userRepository.findByName(userDetails.getUsername()).orElseThrow();
+        var appliedCourses = user.getCourseSignups();
+        var attendedCourses = user.getAttendedCourses();
+        model.addAttribute("appliedCourses", appliedCourses);
+        model.addAttribute("attendedCourses", attendedCourses);
+        return "courses/user";
+    }
+
+    @PostMapping("/courses/remove-user")
+    public String removeParticipant(@RequestParam("status_id") int statusId,
+                                    HttpServletRequest request,
+                                    Model model,
+                                    RedirectAttributes redirectAttributes) {
+        statusRepository.delete(statusRepository.findById(statusId).orElseThrow());
+        redirectAttributes.addFlashAttribute("msg", "Usunięto z kursu!");
+        return "redirect:" + request.getHeader("Referer");
     }
 }

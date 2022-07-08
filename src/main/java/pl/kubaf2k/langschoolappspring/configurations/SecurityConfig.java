@@ -27,7 +27,7 @@ public class SecurityConfig {
         http.authorizeRequests()
                 .antMatchers("/admin").hasAuthority("ROLE_ADMIN")
                 .antMatchers("/teacher").hasAuthority("ROLE_TEACHER")
-                .antMatchers("/user/**", "/courses/enroll").authenticated()
+                .antMatchers("/user/**", "/courses/enroll", "/courses/user").authenticated()
                 .antMatchers("/language").hasAuthority("ROLE_ADMIN")
                 .antMatchers("/courses/add", "/courses/edit", "/courses/**/edit").hasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN")
                 .anyRequest().permitAll()

@@ -15,7 +15,7 @@
         <h4 th:text="${'Liczba godzin: '+course.hours}"></h4>
         <h4 sec:authorize="isAuthenticated()" th:if="${courseCount > 0}"
             th:text="${
-            'Cena: ' + calculatedPrice + ' zł (' + percentage + '0%)'}"></h4>
+            'Cena: ' + calculatedPrice + ' zł (-' + percentage + '0%)'}"></h4>
         <h4 sec:authorize="isAuthenticated()" th:if="${courseCount <= 0}"
             th:text="${course.price + ' zł'}"></h4>
         <h5 th:text="${'Prowadzący: ' + course.teacher.firstName + ' ' + course.teacher.lastName}"></h5>
@@ -31,15 +31,16 @@
                 <input class="btn btn-danger" type="submit" value="Usuń" onclick="return confirm('Czy na pewno chcesz usunąć ten kurs?')"/>
             </form>
         </div>
-        <form th:action="@{/courses/enroll}" method="post" sec:authorize="isAuthenticated()" th:if="${#authentication.getPrincipal().getUser().getId() != course.teacher.id}">
+        <form th:action="@{/courses/enroll}" method="post" sec:authorize="isAuthenticated()" th:if="${#authentication.getPrincipal().getUser().getId() != course.teacher.id && !has_applied}">
             <input name="user_id" type="hidden" th:value="${#authentication.getPrincipal().getUser().getId()}"/>
             <input name="course_id" type="hidden" th:value="${course.id}"/>
             <input type="submit" value="Zapisz się" class="btn btn-primary"/>
         </form>
+        <div th:if="${has_applied}">
+            <button class="btn btn-primary" disabled>Zapisany!</button>
+        </div>
     </div>
 </div>
-
-//TODO errors
 <footer th:insert="fragments/layout :: foot"></footer>
 </body>
 </html>

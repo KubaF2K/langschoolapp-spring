@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:include="fragments/layout :: head">
+    <title id="pageTitle">Moje kursy</title>
+</head>
+<body class="pb-4">
+<nav th:insert="fragments/layout :: nav"></nav>
+<div class="container pt-2">
+    <div th:if="${msg != null}" th:text="${msg}" class="alert alert-success"></div>
+    <h2 class="mb-4">Zapisy na kursy</h2>
+    <div class="container border rounded mb-3">
+        <div th:each="course, iStat : ${appliedCourses}" class="row p-2" th:classappend="${!iStat.last} ? 'border-bottom'">
+            <h3 th:text="${course.course.name}"></h3>
+            <h4 th:text="${'Liczba godzin: ' + course.course.hours}"></h4>
+            <h5 th:text="${'Cena: ' + course.cost}"></h5>
+            <h5 th:text="${'Prowadzący: ' + course.course.teacher.firstName + ' ' + course.course.teacher.lastName}"></h5>
+            <h5 th:text="${'Data zapisu: ' + course.createdAt}"></h5>
+            <form method="post" th:action="@{'/courses/remove-user'}">
+                <input type="hidden" name="status_id" th:value="${course.id}">
+                <input type="submit" class="btn-outline-danger btn" value="Anuluj prośbę">
+            </form>
+        </div>
+        <h3 th:if="${appliedCourses.isEmpty()}" class="p-4">Nie zapisałeś/aś się na żadne kursy!</h3>
+    </div>
+    <h2 class="mb-4">Moje kursy</h2>
+    <div class="container border rounded">
+        <div th:each="course, iStat : ${attendedCourses}" class="row p-2" th:classappend="${!iStat.last} ? 'border-bottom'">
+            <h3 th:text="${course.course.name}"></h3>
+            <h4 th:text="${'Liczba godzin: ' + course.course.hours}"></h4>
+            <h5 th:text="${'Prowadzący: ' + course.course.teacher.firstName + ' ' + course.course.teacher.lastName}"></h5>
+            <form method="post" th:action="@{'/courses/remove-user'}">
+                <input type="hidden" name="status_id" th:value="${course.id}">
+                <input type="submit" class="btn-outline-danger btn" value="Wypisz z kursu">
+            </form>
+        </div>
+        <h3 th:if="${attendedCourses.isEmpty()}" class="p-4">Nie bierzesz udziału w żadnych kursach!</h3>
+    </div>
+</div>
+<footer th:insert="fragments/layout :: foot"></footer>
+</body>
+</html>

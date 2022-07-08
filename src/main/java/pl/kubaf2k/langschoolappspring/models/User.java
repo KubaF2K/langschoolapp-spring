@@ -64,29 +64,36 @@ public class User {
         return false;
     }
 
-    public List<Course> getAttendedCourses() {
-        var list = new LinkedList<Course>();
+    public boolean hasApplied(Course course) {
+        for (var status : courses)
+            if (status.getCourse().getId() == course.getId() && status.getStatus() != CourseStatus.Status.HISTORICAL)
+                return true;
+        return false;
+    }
+
+    public List<CourseStatus> getAttendedCourses() {
+        var list = new LinkedList<CourseStatus>();
         for (var status : courses)
             if (status.getStatus() == CourseStatus.Status.ATTENDING)
-                list.add(status.getCourse());
+                list.add(status);
 
         return list;
     }
 
-    public List<Course> getCourseSignups() {
-        var list = new LinkedList<Course>();
+    public List<CourseStatus> getCourseSignups() {
+        var list = new LinkedList<CourseStatus>();
         for (var status : courses)
             if (status.getStatus() == CourseStatus.Status.NOT_ACCEPTED)
-                list.add(status.getCourse());
+                list.add(status);
 
         return list;
     }
 
-    public List<Course> getHistoricalCourses() {
-        var list = new LinkedList<Course>();
+    public List<CourseStatus> getHistoricalCourses() {
+        var list = new LinkedList<CourseStatus>();
         for (var status : courses)
             if (status.getStatus() == CourseStatus.Status.HISTORICAL)
-                list.add(status.getCourse());
+                list.add(status);
 
         return list;
     }
