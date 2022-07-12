@@ -2,9 +2,11 @@ package pl.kubaf2k.langschoolappspring.models;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import pl.kubaf2k.langschoolappspring.validators.BasicInfo;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
@@ -17,26 +19,30 @@ public class User {
     private int id;
 
     @Column(nullable = false)
-    @NotNull
-    @Size(max = 255)
+    @NotEmpty(groups = BasicInfo.class)
+    @Size(max = 255, groups = BasicInfo.class)
     private String firstName;
+
+    @Column(nullable = false)
+    @NotEmpty(groups = BasicInfo.class)
+    @Size(max = 255, groups = BasicInfo.class)
     private String lastName;
 
     //TODO unique check in custom validator
     @Column(nullable = false, unique = true)
-    @NotNull
-    @Size(max = 255)
+    @NotEmpty(groups = BasicInfo.class)
+    @Size(max = 255, groups = BasicInfo.class)
     private String name;
 
     //TODO unique check in custom validator
     @Column(nullable = false, unique = true)
-    @NotNull
-    @Email
-    @Size(max = 255)
+    @NotEmpty(groups = BasicInfo.class)
+    @Email(groups = BasicInfo.class)
+    @Size(max = 255, groups = BasicInfo.class)
     private String email;
 
     @Column(nullable = false)
-    @NotNull
+    @NotEmpty
     @Size(max = 255)
     private String password;
 

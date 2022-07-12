@@ -35,6 +35,9 @@ public class CourseStatus {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    private LocalDateTime acceptedAt;
+    private LocalDateTime removedAt;
+
     @Column(nullable = false)
     @NotNull
     private Status status;
@@ -112,5 +115,21 @@ public class CourseStatus {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public LocalDateTime getAcceptedAt() {
+        return acceptedAt;
+    }
+
+    public void setAcceptedAt(LocalDateTime acceptedAt) {
+        this.acceptedAt = acceptedAt;
+    }
+
+    public LocalDateTime getRemovedAt() {
+        return removedAt;
+    }
+
+    public void setRemovedAt(LocalDateTime removedAt) {
+        this.removedAt = removedAt;
     }
 }

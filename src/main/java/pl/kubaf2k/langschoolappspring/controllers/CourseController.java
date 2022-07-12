@@ -20,6 +20,8 @@ import pl.kubaf2k.langschoolappspring.validators.CourseValidator;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Controller
@@ -30,9 +32,6 @@ public class CourseController {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final StatusRepository statusRepository;
-
-//    private Role adminRole;
-//    private Role teacherRole;
 
     @Autowired
     public CourseController(CourseRepository courseRepository,
@@ -73,7 +72,6 @@ public class CourseController {
                          BindingResult result,
                          @RequestParam(name = "language_id") int languageId,
                          @RequestParam(name = "teacher_id") int teacherId,
-                         Model model,
                          RedirectAttributes redirectAttributes,
                          @AuthenticationPrincipal LangschoolUserDetails userDetails) {
         var language = languageRepository.findById(languageId);
@@ -108,7 +106,9 @@ public class CourseController {
     }
 
     @GetMapping("/courses/{id}/edit")
-    public String edit(@PathVariable int id, Model model, @AuthenticationPrincipal LangschoolUserDetails userDetails) {
+    public String edit(@PathVariable int id,
+                       Model model,
+                       @AuthenticationPrincipal LangschoolUserDetails userDetails) {
         var course = courseRepository.findById(id).orElseThrow();
 
         if(!userDetails.getUser().hasRole(roleRepository.findByName("ROLE_ADMIN").orElseThrow()) && course.getTeacher().getId() != userDetails.getUser().getId())
@@ -128,7 +128,6 @@ public class CourseController {
     public String update(@ModelAttribute @Validated(BasicInfo.class) Course course,
                          BindingResult result,
                          @RequestParam(name = "teacher_id") int teacherId,
-                         Model model,
                          RedirectAttributes redirectAttributes,
                          @AuthenticationPrincipal LangschoolUserDetails userDetails) {
         Optional<User> teacher = userRepository.findById(teacherId);
@@ -159,16 +158,16 @@ public class CourseController {
 
     @PostMapping("/courses/delete")
     public String delete(@RequestParam(name = "id") int id,
-                         Model model,
                          RedirectAttributes redirectAttributes) {
-
         courseRepository.deleteById(id);
         redirectAttributes.addFlashAttribute("msg", "Usunięto kurs!");
         return "redirect:/courses";
     }
 
     @GetMapping("/courses/{id}")
-    public String view(@PathVariable int id, Model model, @AuthenticationPrincipal LangschoolUserDetails userDetails) {
+    public String view(@PathVariable int id,
+                       Model model,
+                       @AuthenticationPrincipal LangschoolUserDetails userDetails) {
         var course = courseRepository.findById(id).orElseThrow();
         if (userDetails != null) {
             var user = userRepository.findByName(userDetails.getUsername()).orElseThrow();
@@ -188,7 +187,6 @@ public class CourseController {
     @PostMapping("/courses/enroll")
     public String enroll(@RequestParam(name = "user_id") int userId,
                          @RequestParam(name = "course_id") int courseId,
-                         Model model,
                          RedirectAttributes redirectAttributes) {
         var user = userRepository.findById(userId).orElseThrow();
         var course = courseRepository.findById(courseId).orElseThrow();
@@ -207,8 +205,7 @@ public class CourseController {
         var application = new CourseStatus(course, user, CourseStatus.Status.NOT_ACCEPTED, price);
         statusRepository.save(application);
         redirectAttributes.addFlashAttribute("msg", "Zapisano pomyślnie!");
-        //TODO redirect to user panel
-        return "redirect:/courses";
+        return "redirect:/courses/user";
     }
 
     @GetMapping("/courses/user")
@@ -224,10 +221,37 @@ public class CourseController {
     @PostMapping("/courses/remove-user")
     public String removeParticipant(@RequestParam("status_id") int statusId,
                                     HttpServletRequest request,
-                                    Model model,
                                     RedirectAttributes redirectAttributes) {
-        statusRepository.delete(statusRepository.findById(statusId).orElseThrow());
+        var status = statusRepository.findById(statusId).orElseThrow();
+        switch (status.getStatus()) {
+            case ATTENDING:
+                status.setStatus(CourseStatus.Status.HISTORICAL);
+                status.setRemovedAt(LocalDateTime.now());
+                statusRepository.save(status);
+                break;
+            case NOT_ACCEPTED:
+                statusRepository.delete(status);
+                break;
+            case HISTORICAL:
+                throw new NoSuchElementException();
+        }
         redirectAttributes.addFlashAttribute("msg", "Usunięto z kursu!");
+        return "redirect:" + request.getHeader("Referer");
+    }
+
+    @PostMapping("/courses/accept-user")
+    public String acceptParticipant(@RequestParam("status_id") int statusId,
+                                    HttpServletRequest request,
+                                    RedirectAttributes redirectAttributes) {
+        var status = statusRepository.findById(statusId).orElseThrow();
+        if (status.getStatus() != CourseStatus.Status.NOT_ACCEPTED)
+            throw new NoSuchElementException();
+
+        status.setStatus(CourseStatus.Status.ATTENDING);
+        status.setAcceptedAt(LocalDateTime.now());
+        statusRepository.save(status);
+
+        redirectAttributes.addFlashAttribute("msg", "Przyjęto użytkownika na kurs!");
         return "redirect:" + request.getHeader("Referer");
     }
 }

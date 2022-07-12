@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: head">
+  <title id="pageTitle">Edytowanie użytkownika</title>
+</head>
+<body class="pb-4">
+<nav th:insert="fragments/layout :: nav"></nav>
+<div class="container pt-2">
+  <h2>Edytuj dane</h2>
+  <form method="post" th:action="@{'/user/edit'}" th:object="${user}">
+    <div th:if="${#fields.hasAnyErrors()}" class="alert alert-danger">
+      <ul>
+        <li th:each="err : ${#fields.allErrors()}" th:text="${err}"></li>
+      </ul>
+    </div>
+    <input type="hidden" th:field="*{id}">
+    <div class="mb-3">
+      <label class="form-label" th:field="*{name}">
+        Nazwa użytkownika
+        <input class="form-control" th:field="*{name}" th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'">
+      </label>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">
+        Hasło
+        <input class="form-control" type="password" disabled value="password"/>
+      </label>
+      <a th:href="@{/user/changePassword}" class="btn btn-outline-primary">Zmień hasło</a>
+    </div>
+    <div class="mb-3">
+      <label class="form-label" th:field="*{firstName}">
+        Imię
+        <input class="form-control" th:field="*{firstName}" th:classappend="${#fields.hasErrors('firstName')} ? 'is-invalid'">
+      </label>
+    </div>
+    <div class="mb-3">
+      <label class="form-label" th:field="*{lastName}">
+        Nazwisko
+        <input class="form-control" th:field="*{lastName}" th:classappend="${#fields.hasErrors('lastName')} ? 'is-invalid'">
+      </label>
+    </div>
+    <div class="mb-3">
+      <label class="form-label" th:field="*{email}">
+        Email
+        <input class="form-control" type="email" th:field="*{email}" th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'">
+      </label>
+    </div>
+    <input type="submit" class="btn btn-outline-primary" value="Zmień">
+  </form>
+</div>
+<footer th:insert="fragments/layout :: foot"></footer>
+</body>
+</html>

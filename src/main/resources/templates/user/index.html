@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: head">
+  <title id="pageTitle">Dane użytkownika</title>
+</head>
+<body class="pb-4">
+<nav th:insert="fragments/layout :: nav"></nav>
+<div class="container pt-2">
+  <h2>Profil użytkownika</h2>
+  <p th:text="${'Nazwa użytkownika: ' + user.name}"></p>
+  <label>Hasło<input type="password" disabled value="password"/></label>
+  <p th:text="${'Imię i nazwisko: ' + user.firstName + ' ' + user.lastName}"></p>
+  <p th:text="${'Adres email: ' + user.email}"></p>
+  <p th:if="${user.roles.size() != 1 || user.roles[0].name != 'ROLE_USER'}">
+    Role:
+    <span th:each="role : ${user.roles}" th:text="${role.name.substring(role.name.indexOf('_')).toLowerCase()}"></span>
+  </p>
+  <p th:if="${user.language != null}" th:text="${'Język: ' + user.language.name}"></p>
+  <p th:text="${'Utworzono: ' + user.createdAt}"></p>
+  <a th:href="@{/user/edit}" class="btn btn-outline-primary">Zmień dane</a>
+</div>
+<footer th:insert="fragments/layout :: foot"></footer>
+</body>
+</html>
