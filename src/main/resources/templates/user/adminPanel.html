@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: head">
+  <title id="pageTitle">Panel administracyjny</title>
+</head>
+<body class="pb-4">
+<nav th:insert="fragments/layout :: nav"></nav>
+<div th:if="${msg != null}" class="alert alert-success" th:text="${msg}"></div>
+<h2>Użytkownicy</h2>
+<table>
+  <thead>
+  <tr>
+    <th scope="col">#</th>
+    <th scope="col">Nazwa użytkownika</th>
+    <th scope="col">Imię</th>
+    <th scope="col">Nazwisko</th>
+    <th scope="col">Email</th>
+    <th scope="col">Data utworzenia</th>
+    <th scope="col">Język</th>
+    <th scope="col">Role</th>
+    <th scope="col">Aktualizuj</th>
+    <th scope="col">Usuń</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="user : ${users}">
+    <th th:text="${user.id}"></th>
+    <td th:text="${user.name}"></td>
+    <td th:text="${user.firstName}"></td>
+    <td th:text="${user.lastName}"></td>
+    <td th:text="${user.email}"></td>
+    <td th:text="${user.createdAt}"></td>
+    <td th:text="${user.language}"></td>
+    <td>
+      <span th:each="role : ${user.roles}" th:text="${role.name + ' '}"></span>
+    </td>
+    <td>
+      <a th:href="@{'/user/edit?id=' + ${user.id}}" class="btn-outline-primary btn">Edytuj</a>
+    </td>
+    <td>
+      <form method="post" th:action="@{/user/delete}">
+        <input type="hidden" name="id" th:value="${user.id}">
+        <input type="submit" class="btn-outline-danger btn" value="Usuń"
+               onclick="return confirm('Czy na pewno chcesz usunąć tego użytkownika?');">
+      </form>
+    </td>
+  </tr>
+  </tbody>
+</table>
+<footer th:insert="fragments/layout :: foot"></footer>
+</body>
+</html>

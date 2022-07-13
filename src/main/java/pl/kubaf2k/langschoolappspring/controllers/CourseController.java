@@ -218,6 +218,7 @@ public class CourseController {
         return "courses/user";
     }
 
+    //TODO validate in case of teacher if it's the right one
     @PostMapping("/courses/remove-user")
     public String removeParticipant(@RequestParam("status_id") int statusId,
                                     HttpServletRequest request,

@@ -59,20 +59,20 @@ public class Course {
     public Course() {
     }
 
-    public List<User> getApplicants() {
-        var list = new LinkedList<User>();
+    public List<CourseStatus> getApplicants() {
+        var list = new LinkedList<CourseStatus>();
         for (var status : users)
             if (status.getStatus() == CourseStatus.Status.NOT_ACCEPTED)
-                list.add(status.getUser());
+                list.add(status);
 
         return list;
     }
 
-    public List<User> getAttendants() {
-        var list = new LinkedList<User>();
+    public List<CourseStatus> getAttendants() {
+        var list = new LinkedList<CourseStatus>();
         for (var status : users)
             if (status.getStatus() == CourseStatus.Status.ATTENDING)
-                list.add(status.getUser());
+                list.add(status);
 
         return list;
     }

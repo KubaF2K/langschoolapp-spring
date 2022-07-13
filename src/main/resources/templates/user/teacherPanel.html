@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: head">
+    <title id="pageTitle">Panel nauczyciela</title>
+</head>
+<body class="pb-4">
+<nav th:insert="fragments/layout :: nav"></nav>
+<div th:if="${msg != null}" class="alert alert-success" th:text="${msg}"></div>
+<div class="container pt-4">
+    <h2>Niezaakceptowane zapisy na kursy</h2>
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">Użytkownik</th>
+            <th scope="col">Kurs</th>
+            <th scope="col">Koszt</th>
+            <th scope="col">Data zapisu</th>
+            <th scope="col">Adres email</th>
+            <th scope="col">Akceptuj</th>
+            <th scope="col">Ignoruj</th>
+        </tr>
+        </thead>
+        <tbody>
+        <th:block th:each="course : ${courses}">
+            <tr th:each="status : ${course.applicants}">
+                <td th:text="${status.user.firstName + ' ' + status.user.lastName}"></td>
+                <td th:text="${course.name}"></td>
+                <td th:text="${status.cost + ' zł'}"></td>
+                <td th:text="${status.createdAt}"></td>
+                <td th:text="${status.user.email}"></td>
+                <td>
+                    <form method="post" th:action="@{/courses/accept-user}">
+                        <input type="hidden" name="status_id" th:value="${status.id}">
+                        <input type="submit" value="Akceptuj" class="btn-outline-success btn">
+                    </form>
+                </td>
+                <td>
+                    <form method="post" th:action="@{/courses/remove-user}">
+                        <input type="hidden" name="status_id" th:value="${status.id}">
+                        <input type="submit" value="Odrzuć" class="btn-outline-danger btn"
+                               onclick="return confirm('Czy na pewno chcesz odrzucić tą prośbę? Użytkownik zostanie o tym powiadomiony.');">
+                    </form>
+                </td>
+            </tr>
+        </th:block>
+        </tbody>
+    </table>
+
+    <h2>Prowadzone kursy</h2>
+    <div class="container">
+        <div th:each="course, iStat : ${courses}" class="row p-2" th:classappend="${!iStat.last} ? 'border-bottom'">
+            <h3 th:text="${course.name}"></h3>
+            <p th:text="${course.description}"></p>
+            <h4 th:text="${'Liczba godzin: ' + course.hours}"></h4>
+            <h4 th:text="${'Cena: ' + course.price}"></h4>
+            <div class="mb-2">
+                <form method="post" th:action="@{/courses/delete}">
+                    <a th:href="@{'/courses/' + ${course.id} + '/edit'}" class="btn-success btn">Edytuj</a>
+                    <input type="hidden" name="id" th:value="${course.id}">
+                    <input type="submit" class="btn-danger btn" value="Usuń"
+                           onclick="return confirm('Czy na pewno chcesz usunąć ten kurs?')">
+                </form>
+            </div>
+            <h5>Kursanci</h5>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">Imię</th>
+                    <th scope="col">Nazwisko</th>
+                    <th scope="col">Adres email</th>
+                    <th scope="col">Data przyjęcia</th>
+                    <th scope="col">Usuń</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="status : ${course.attendants}">
+                    <td th:text="${status.user.firstName}"></td>
+                    <td th:text="${status.user.lastName}"></td>
+                    <td th:text="${status.user.email}"></td>
+                    <td th:text="${status.createdAt}"></td>
+                    <td>
+                        <form method="post" th:action="@{/courses/remove-user}">
+                            <input type="hidden" name="status_id" th:value="${status.id}">
+                            <input type="submit" value="Usuń" class="btn-outline-danger btn"
+                            onclick="return confirm('Czy na pewno chcesz usunąć tego użytkownika z kursu? Użytkownik zostanie o tym powiadomiony.')"/>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${course.attendants.isEmpty()}"><th colspan="4">Brak kursantów!</th></tr>
+                </tbody>
+            </table>
+        </div>
+        <h3 th:if="${courses.isEmpty()}">Brak kursów!</h3>
+    </div>
+</div>
+<footer th:insert="fragments/layout :: foot"></footer>
+</body>
+</html>

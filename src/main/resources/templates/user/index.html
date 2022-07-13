@@ -13,7 +13,7 @@
   <p th:text="${'Adres email: ' + user.email}"></p>
   <p th:if="${user.roles.size() != 1 || user.roles[0].name != 'ROLE_USER'}">
     Role:
-    <span th:each="role : ${user.roles}" th:text="${role.name.substring(role.name.indexOf('_')).toLowerCase()}"></span>
+    <span th:each="role : ${user.roles}" th:text="${role.name.substring(role.name.indexOf('_')+1).toLowerCase()}"></span>
   </p>
   <p th:if="${user.language != null}" th:text="${'Język: ' + user.language.name}"></p>
   <p th:text="${'Utworzono: ' + user.createdAt}"></p>

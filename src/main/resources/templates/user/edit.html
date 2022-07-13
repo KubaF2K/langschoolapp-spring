@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+<html lang="pl" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:include="fragments/layout :: head">
   <title id="pageTitle">Edytowanie użytkownika</title>
 </head>
@@ -25,7 +25,7 @@
         Hasło
         <input class="form-control" type="password" disabled value="password"/>
       </label>
-      <a th:href="@{/user/changePassword}" class="btn btn-outline-primary">Zmień hasło</a>
+      <a th:if="${#authentication.principal.username == user.name}" th:href="@{/user/changePassword}" class="btn btn-outline-primary">Zmień hasło</a>
     </div>
     <div class="mb-3">
       <label class="form-label" th:field="*{firstName}">
@@ -43,6 +43,13 @@
       <label class="form-label" th:field="*{email}">
         Email
         <input class="form-control" type="email" th:field="*{email}" th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'">
+      </label>
+    </div>
+    <div sec:authorize="hasAuthority('ROLE_ADMIN')" class="mb-3">
+      <label>
+        Roles:
+        <input type="checkbox" name="roles" th:each="role : ${allRoles}" th:text="${role.name}" th:value="${role.id}"
+               th:field="*{roles}" th:selected="${user.hasRole(role)}">
       </label>
     </div>
     <input type="submit" class="btn btn-outline-primary" value="Zmień">
