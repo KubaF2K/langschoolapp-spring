@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: head">
+  <title id="pageTitle">Dodawanie języka</title>
+</head>
+<body class="pb-4">
+<nav th:insert="fragments/layout :: nav"></nav>
+<h2>Dodawanie</h2>
+<form method="post" th:action="@{/language/edit}" th:object="${language}">
+  <div class="alert alert-danger" th:if="${#fields.hasAnyErrors()}">
+    <ul>
+      <li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li>
+    </ul>
+  </div>
+  <div class="mb-3">
+    <label class="form-label" th:field="*{code}">
+      Kod
+      <input class="form-control" th:field="*{code}" th:classappend="${#fields.hasErrors('code')} ? 'is-invalid'">
+    </label>
+  </div>
+  <div class="mb-3">
+    <label class="form-label" th:field="*{name}">
+      Nazwa
+      <input class="form-control" th:field="*{name}" th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'">
+    </label>
+  </div>
+  <div>
+    <label class="form-label" th:field="*{description}">
+      Opis
+      <textarea class="form-control" th:field="*{description}"
+                th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'"></textarea>
+    </label>
+  </div>
+  <input type="submit" class="btn btn-outline-primary" value="Dodaj">
+</form>
+<footer th:insert="fragments/layout :: foot"></footer>
+</body>
+</html>

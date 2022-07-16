@@ -71,6 +71,7 @@ public class UserController {
             model.addAttribute(user);
         }
         model.addAttribute("allRoles", roleRepository.findAll());
+        model.addAttribute("allLanguages", languageRepository.findAll());
 
         return "user/edit";
     }
@@ -100,6 +101,7 @@ public class UserController {
         originalUser.setLastName(user.getLastName());
         originalUser.setEmail(user.getEmail());
         originalUser.setRoles(user.getRoles());
+        originalUser.setLanguage(user.getLanguage());
 
         userRepository.save(originalUser);
         redirectAttributes.addFlashAttribute("msg", "Zaktualizowano dane użytkownika!");

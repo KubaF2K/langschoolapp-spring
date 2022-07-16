@@ -30,7 +30,7 @@
     <td th:text="${user.lastName}"></td>
     <td th:text="${user.email}"></td>
     <td th:text="${user.createdAt}"></td>
-    <td th:text="${user.language}"></td>
+    <td th:text="${user.language != null} ? ${user.language.name}"></td>
     <td>
       <span th:each="role : ${user.roles}" th:text="${role.name + ' '}"></span>
     </td>

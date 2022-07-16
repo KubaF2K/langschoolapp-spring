@@ -4,10 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.Errors;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -155,7 +153,9 @@ public class CourseController {
     @PostMapping("/courses/delete")
     public String delete(@RequestParam(name = "id") int id,
                          RedirectAttributes redirectAttributes) {
-        courseRepository.deleteById(id);
+        var course = courseRepository.findById(id).orElseThrow();
+        statusRepository.deleteAll(course.getUsers());
+        courseRepository.delete(course);
         redirectAttributes.addFlashAttribute("msg", "Usunięto kurs!");
         return "redirect:/courses";
     }

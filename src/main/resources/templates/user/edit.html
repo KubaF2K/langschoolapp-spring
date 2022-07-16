@@ -46,6 +46,14 @@
       </label>
     </div>
     <div sec:authorize="hasAuthority('ROLE_ADMIN')" class="mb-3">
+      <label class="form-label" th:field="*{language}">
+        <select class="form-control" th:field="*{language}">
+          <option th:value="${null}">Brak</option>
+          <option th:each="language : ${allLanguages}" th:value="${language.id}" th:text="${language.name}"></option>
+        </select>
+      </label>
+    </div>
+    <div sec:authorize="hasAuthority('ROLE_ADMIN')" class="mb-3">
       <label>
         Role:
         <input type="checkbox" name="roles" th:each="role : ${allRoles}" th:text="${role.name}" th:value="${role.id}"

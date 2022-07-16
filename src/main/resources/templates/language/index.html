@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+<head th:include="fragments/layout :: head">
+    <title id="pageTitle">Języki</title>
+</head>
+<body class="pb-4">
+<nav th:insert="fragments/layout :: nav"></nav>
+<div class="container pt-4">
+    <div th:if="${msg != null}" th:text="${msg}" class="alert alert-success"></div>
+    <div th:if="${errmsg != null}" th:text="${errmsg}" class="alert alert-danger"></div>
+    <a th:href="@{/language/add}" class="btn-outline-primary btn">Dodaj język</a>
+    <div class="row">
+        <div th:each="language : ${languages}" class="container border rounded p-4 m-3">
+            <h2 class="border-bottom p-3 w-auto">
+                <img class="img-thumbnail" style="height: 5rem" th:src="@{'/img/' + ${language.code} + '.svg'}"
+                     th:alt="${language.name}">
+                <span th:text="${'Język ' + language.name}"></span>
+            </h2>
+            <p th:text="${language.description}"></p>
+            <p th:text="${'Kod: ' + language.code}"></p>
+            <p th:text="${'Data utworzenia: ' + language.createdAt}"></p>
+            <p th:text="${'Data edycji: ' + language.updatedAt}"></p>
+            <form th:action="@{/language/delete}" method="post">
+                <input type="hidden" name="id" th:value="${language.id}">
+                <input type="submit" value="Usuń" class="btn btn-outline-danger float-end"
+                       onclick="return confirm('Czy na pewno chcesz usunąć ten język?')">
+                <a th:href="@{'/language/' + ${language.id} + '/edit'}"
+                   class="btn btn-outline-primary float-end">Edytuj</a>
+            </form>
+        </div>
+    </div>
+</div>
+<footer th:insert="fragments/layout :: foot"></footer>
+</body>
+</html>
