@@ -1,6 +1,7 @@
 package pl.kubaf2k.langschoolappspring.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import pl.kubaf2k.langschoolappspring.models.Role;
 import pl.kubaf2k.langschoolappspring.models.User;
 import pl.kubaf2k.langschoolappspring.repositories.CourseRepository;
 import pl.kubaf2k.langschoolappspring.repositories.LanguageRepository;
@@ -21,10 +23,9 @@ import pl.kubaf2k.langschoolappspring.services.LangschoolUserDetails;
 import pl.kubaf2k.langschoolappspring.validators.BasicInfo;
 import pl.kubaf2k.langschoolappspring.validators.UserValidator;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.NoSuchElementException;
-import java.util.Objects;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import java.util.*;
 
 @Controller
 public class UserController {
@@ -34,19 +35,16 @@ public class UserController {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final LanguageRepository languageRepository;
-    private final CourseRepository courseRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
     public UserController(UserRepository userRepository,
                           RoleRepository roleRepository,
                           LanguageRepository languageRepository,
-                          CourseRepository courseRepository,
                           PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.languageRepository = languageRepository;
-        this.courseRepository = courseRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -85,7 +83,6 @@ public class UserController {
 
         var validator = new UserValidator(
                 userDetails.getUser(),
-                roleRepository.findByName("ROLE_TEACHER").orElseThrow(),
                 roleRepository.findByName("ROLE_ADMIN").orElseThrow(),
                 userRepository
         );
@@ -111,6 +108,58 @@ public class UserController {
             return "redirect:/login?logout";
 
         return "redirect:/user";
+    }
+
+    @GetMapping("/register")
+    public String register(Model model) {
+        if (!model.containsAttribute("user"))
+            model.addAttribute(new User());
+
+        return "user/register";
+    }
+
+    @PostMapping("/register")
+    public String create(@ModelAttribute @Valid User user,
+                         BindingResult result,
+                         RedirectAttributes redirectAttributes,
+                         @RequestParam String confirmPassword) {
+
+        if (!Objects.equals(confirmPassword, user.getPassword()))
+            result.rejectValue("password", "error.password.confirm_not_matching", "hasła nie są zgodne");
+
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        var validator = new UserValidator(user, roleRepository.findByName("ROLE_ADMIN").orElseThrow(), userRepository);
+        validator.validate(user, result);
+
+        if (result.hasErrors()) {
+            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.user", result);
+            redirectAttributes.addFlashAttribute("user", user);
+            return "redirect:/register";
+        }
+
+        List<Role> roles = new LinkedList<>();
+        roles.add(roleRepository.findByName("ROLE_USER").orElseThrow());
+        user.setRoles(roles);
+        userRepository.save(user);
+        redirectAttributes.addFlashAttribute("msg", "Zarejestrowano pomyślnie!");
+
+        return "redirect:/login";
+    }
+
+    @PostMapping("/user/delete")
+    public String delete(@RequestParam int id,
+                         @AuthenticationPrincipal LangschoolUserDetails userDetails,
+                         HttpServletRequest request) {
+        var editor = userRepository.findByName(userDetails.getUsername()).orElseThrow();
+        if (!editor.hasRole(roleRepository.findByName("ROLE_ADMIN").orElseThrow()))
+            throw new AccessDeniedException("Nie masz uprawnień na wykonanie tej operacji");
+
+        var user = userRepository.findById(id);
+
+        user.ifPresent(userRepository::delete);
+
+        return "redirect:" + request.getHeader("Referer");
     }
 
     @GetMapping("/user/changePassword")

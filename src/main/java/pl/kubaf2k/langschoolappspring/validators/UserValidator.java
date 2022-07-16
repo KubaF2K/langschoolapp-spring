@@ -11,12 +11,10 @@ import java.util.Objects;
 public class UserValidator implements Validator {
     private final User editor;
     private final UserRepository userRepository;
-    private final Role teacher;
     private final Role admin;
 
-    public UserValidator(User user, Role teacher, Role admin, UserRepository userRepository) {
+    public UserValidator(User user, Role admin, UserRepository userRepository) {
         editor = user;
-        this.teacher = teacher;
         this.admin = admin;
         this.userRepository = userRepository;
     }

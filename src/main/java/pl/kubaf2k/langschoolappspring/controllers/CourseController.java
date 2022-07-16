@@ -65,8 +65,6 @@ public class CourseController {
             model.addAttribute("course", new Course());
         return "courses/add";
     }
-
-//    TODO validation
     @PostMapping("/courses/add")
     public String create(@ModelAttribute @Validated(BasicInfo.class) Course course,
                          BindingResult result,
@@ -122,8 +120,6 @@ public class CourseController {
 
         return "courses/edit";
     }
-
-    //TODO Validation
     @PostMapping("/courses/edit")
     public String update(@ModelAttribute @Validated(BasicInfo.class) Course course,
                          BindingResult result,
@@ -218,12 +214,22 @@ public class CourseController {
         return "courses/user";
     }
 
-    //TODO validate in case of teacher if it's the right one
     @PostMapping("/courses/remove-user")
     public String removeParticipant(@RequestParam("status_id") int statusId,
                                     HttpServletRequest request,
-                                    RedirectAttributes redirectAttributes) {
+                                    RedirectAttributes redirectAttributes,
+                                    @AuthenticationPrincipal LangschoolUserDetails userDetails) {
         var status = statusRepository.findById(statusId).orElseThrow();
+        var editor = userRepository.findByName(userDetails.getUsername()).orElseThrow();
+        var roleTeacher = roleRepository.findByName("ROLE_TEACHER").orElseThrow();
+        var roleAdmin = roleRepository.findByName("ROLE_ADMIN").orElseThrow();
+
+        if (
+                (!editor.hasRole(roleTeacher) && !editor.hasRole(roleAdmin) && status.getUser().getId() != editor.getId()) ||
+                (editor.hasRole(roleTeacher) && !editor.hasRole(roleAdmin) && status.getCourse().getTeacher().getId() != editor.getId())
+        )
+            throw new AccessDeniedException("Nie masz uprawnień na wykonanie tej operacji");
+
         switch (status.getStatus()) {
             case ATTENDING:
                 status.setStatus(CourseStatus.Status.HISTORICAL);
@@ -243,8 +249,19 @@ public class CourseController {
     @PostMapping("/courses/accept-user")
     public String acceptParticipant(@RequestParam("status_id") int statusId,
                                     HttpServletRequest request,
-                                    RedirectAttributes redirectAttributes) {
+                                    RedirectAttributes redirectAttributes,
+                                    @AuthenticationPrincipal LangschoolUserDetails userDetails) {
         var status = statusRepository.findById(statusId).orElseThrow();
+        var editor = userRepository.findByName(userDetails.getUsername()).orElseThrow();
+        var roleTeacher = roleRepository.findByName("ROLE_TEACHER").orElseThrow();
+        var roleAdmin = roleRepository.findByName("ROLE_ADMIN").orElseThrow();
+
+        if (
+                (!editor.hasRole(roleTeacher) && !editor.hasRole(roleAdmin)) ||
+                (editor.hasRole(roleTeacher) && !editor.hasRole(roleAdmin) && status.getCourse().getTeacher().getId() != editor.getId())
+        )
+            throw new AccessDeniedException("Nie masz uprawnień na wykonanie tej operacji");
+
         if (status.getStatus() != CourseStatus.Status.NOT_ACCEPTED)
             throw new NoSuchElementException();
 

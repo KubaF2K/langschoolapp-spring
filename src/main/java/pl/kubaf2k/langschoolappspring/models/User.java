@@ -64,6 +64,8 @@ public class User {
     private List<Course> taughtCourses;
 
     public boolean hasRole(Role role) {
+        if (roles == null)
+            return false;
         for (Role iRole : roles)
             if (Objects.equals(role.getName(), iRole.getName()))
                 return true;
@@ -71,6 +73,8 @@ public class User {
     }
 
     public boolean hasApplied(Course course) {
+        if (courses == null)
+            return false;
         for (var status : courses)
             if (status.getCourse().getId() == course.getId() && status.getStatus() != CourseStatus.Status.HISTORICAL)
                 return true;
@@ -79,6 +83,9 @@ public class User {
 
     public List<CourseStatus> getAttendedCourses() {
         var list = new LinkedList<CourseStatus>();
+        if (courses == null)
+            return list;
+
         for (var status : courses)
             if (status.getStatus() == CourseStatus.Status.ATTENDING)
                 list.add(status);
@@ -88,6 +95,9 @@ public class User {
 
     public List<CourseStatus> getCourseSignups() {
         var list = new LinkedList<CourseStatus>();
+        if (courses == null)
+            return list;
+
         for (var status : courses)
             if (status.getStatus() == CourseStatus.Status.NOT_ACCEPTED)
                 list.add(status);
@@ -97,6 +107,9 @@ public class User {
 
     public List<CourseStatus> getHistoricalCourses() {
         var list = new LinkedList<CourseStatus>();
+        if (courses == null)
+            return list;
+
         for (var status : courses)
             if (status.getStatus() == CourseStatus.Status.HISTORICAL)
                 list.add(status);

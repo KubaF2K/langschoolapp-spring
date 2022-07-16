@@ -1,19 +1,18 @@
 <!DOCTYPE html>
-<html lang="pl" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
 <head th:include="fragments/layout :: head">
-  <title id="pageTitle">Edytowanie użytkownika</title>
+  <title id="pageTitle">Rejestracja</title>
 </head>
 <body class="pb-4">
 <nav th:insert="fragments/layout :: nav"></nav>
 <div class="container pt-2">
-  <h2>Edytuj dane</h2>
-  <form method="post" th:action="@{'/user/edit'}" th:object="${user}">
+  <h2>Rejestracja</h2>
+  <form method="post" th:action="@{'/register'}" th:object="${user}">
     <div th:if="${#fields.hasAnyErrors()}" class="alert alert-danger">
       <ul>
         <li th:each="err : ${#fields.allErrors()}" th:text="${err}"></li>
       </ul>
     </div>
-    <input type="hidden" th:field="*{id}">
     <div class="mb-3">
       <label class="form-label" th:field="*{name}">
         Nazwa użytkownika
@@ -21,11 +20,14 @@
       </label>
     </div>
     <div class="mb-3">
-      <label class="form-label">
+      <label class="form-label" th:field="*{password}">
         Hasło
-        <input class="form-control" type="password" disabled value="password"/>
+        <input class="form-control" type="password" th:field="*{password}" th:classappend="${#fields.hasErrors('password')} ? 'is-invalid'">
       </label>
-      <a th:if="${#authentication.principal.username == user.name}" th:href="@{/user/changePassword}" class="btn btn-outline-primary">Zmień hasło</a>
+      <label class="form-label">
+        Powtórz hasło
+        <input class="form-control" type="password" name="confirmPassword">
+      </label>
     </div>
     <div class="mb-3">
       <label class="form-label" th:field="*{firstName}">
@@ -45,14 +47,7 @@
         <input class="form-control" type="email" th:field="*{email}" th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'">
       </label>
     </div>
-    <div sec:authorize="hasAuthority('ROLE_ADMIN')" class="mb-3">
-      <label>
-        Role:
-        <input type="checkbox" name="roles" th:each="role : ${allRoles}" th:text="${role.name}" th:value="${role.id}"
-               th:field="*{roles}" th:selected="${user.hasRole(role)}">
-      </label>
-    </div>
-    <input type="submit" class="btn btn-outline-primary" value="Zmień">
+    <input type="submit" class="btn btn-outline-primary" value="Zarejestruj">
   </form>
 </div>
 <footer th:insert="fragments/layout :: foot"></footer>
